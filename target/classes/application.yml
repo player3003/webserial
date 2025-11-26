@@ -4,10 +4,10 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://mongo:27017/webserialdb
+      uri: mongodb://localhost:27017/webserialdb
 
 app:
   mqtt:
-    broker: tcp://mosquitto:1883
+    broker: tcp://localhost:1883
     clientId: web-serial-server
     topic: device/+/serial/raw
