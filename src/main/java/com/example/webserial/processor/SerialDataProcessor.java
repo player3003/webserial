@@ -22,9 +22,15 @@ public class SerialDataProcessor {
     // 供 MqttService 调用的实例方法
     public void process(String topic, String raw) {
         try {
+            System.out.println("🔄 Processing message - Topic: " + topic + ", Raw: " + raw);
+            
             String deviceId = extractDeviceIdFromTopic(topic);
             long timestamp = System.currentTimeMillis();
             Map<String, Object> payload = parseRawPayload(raw);
+
+            System.out.println("   Device ID: " + deviceId);
+            System.out.println("   Timestamp: " + timestamp);
+            System.out.println("   Payload: " + payload);
 
             SerialDataEntity entity = new SerialDataEntity();
             entity.setDeviceId(deviceId);
@@ -33,11 +39,16 @@ public class SerialDataProcessor {
             entity.setPayload(payload);
 
             // 存库
-            repository.save(entity);
+            System.out.println("💾 Saving to MongoDB...");
+            SerialDataEntity saved = repository.save(entity);
+            System.out.println("✅ Saved with ID: " + saved.getId());
 
             // 推送给前端
+            System.out.println("📡 Pushing to WebSocket...");
             wsService.sendToClients(entity);
+            System.out.println("✅ Process completed");
         } catch (Exception e) {
+            System.err.println("❌ Error in process:");
             e.printStackTrace();
         }
     }
