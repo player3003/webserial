@@ -28,6 +28,11 @@ public class MqttService implements MqttCallback {
 
     @PostConstruct
     public void init() throws MqttException {
+        System.out.println("🔧 Initializing MQTT Service...");
+        System.out.println("   Broker: " + brokerUrl);
+        System.out.println("   Client ID: " + clientId);
+        System.out.println("   Topic Pattern: " + topicPattern);
+        
         client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
@@ -36,7 +41,7 @@ public class MqttService implements MqttCallback {
         client.connect(options);
 
         client.subscribe(topicPattern);
-        System.out.println("MQTT connected and subscribed to: " + topicPattern);
+        System.out.println("✅ MQTT connected and subscribed to: " + topicPattern);
     }
 
     @PreDestroy
@@ -61,9 +66,12 @@ public class MqttService implements MqttCallback {
     public void messageArrived(String topic, MqttMessage message) {
         try {
             String payload = new String(message.getPayload());
+            System.out.println("📥 MQTT Message Received - Topic: " + topic + ", Payload: " + payload);
             // 委托处理
             serialDataProcessor.process(topic, payload);
+            System.out.println("✅ Message processed successfully");
         } catch (Exception e) {
+            System.err.println("❌ Error processing MQTT message:");
             e.printStackTrace();
         }
     }
