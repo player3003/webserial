@@ -16,4 +16,16 @@ public class SerialDataEntity {
     private long timestamp;
     private String rawData;
     private Map<String, Object> payload;
+
+    // 新增：消息类型（telemetry/status/command/ack/other）
+    private String messageType;
+
+    // 可选的相关 ID，用于命令和应答关联
+    private String correlationId;
+
+    // 可选元数据
+    private Map<String, Object> meta;
+
+    // 可选顺序号
+    private Long sequence;
 }
