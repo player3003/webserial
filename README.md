@@ -290,8 +290,8 @@ stompClient.connect({}, function(frame) {
     stompClient.subscribe('/topic/device/sensor001', function(message) {
         const data = JSON.parse(message.body);
         console.log('Received:', data);
-        // data.deviceId, data.timestamp, data.payload
-    });
+        // data.type (telemetry/status/command/ack), data.deviceId, data.timestamp, data.payload
+      });
 });
 ```
 
@@ -344,7 +344,22 @@ app:
   mqtt:
     broker: tcp://mosquitto:1883      # MQTT Broker 地址
     clientId: web-serial-server       # MQTT 客户端 ID
-    topic: device/+/serial/raw        # 订阅主题（+ 为通配符）
+    topic: device/+/serial/raw        # 订阅主题（+ 为通配符）；服务已更新为支持 `device/+/serial/#`，以接收 raw/status/cmd 等多类消息
+
+## 新增：命令下发与消息类型
+
+- **发送命令（REST -> MQTT）**：后端新增接口 `POST /api/device/{deviceId}/command`，接收 JSON body，会将命令发布到 `device/{deviceId}/serial/cmd`（由 `app.mqtt.commandTopicTemplate` 控制）。
+- **WebSocket 推送**：后端向前端推送的消息为统一包（envelope），包含 `type` 字段（如 `telemetry`、`status`、`command`、`ack`）。可订阅：
+  - 全局：`/topic/realtime`
+  - 设备级：`/topic/device/{deviceId}`
+
+示例：通过 REST 下发命令
+
+```powershell
+Invoke-RestMethod -Method Post -Uri "http://localhost:8080/api/device/sensor001/command" -Body (@{command='reboot'; correlationId='1234'} | ConvertTo-Json) -ContentType 'application/json'
+```
+
+后端会把该 JSON 字符串发布到 MQTT 主题 `device/sensor001/serial/cmd`，设备端（开发板）若订阅该主题可收到并执行。
 ```
 
 ### 自定义配置
