@@ -66,7 +66,13 @@ public class MqttService implements MqttCallback {
     public void messageArrived(String topic, MqttMessage message) {
         try {
             String payload = new String(message.getPayload());
-            System.out.println("📥 MQTT Message Received - Topic: " + topic + ", Payload: " + payload);
+            System.out.println(
+                    "📥 MQTT Message Received" +
+                            " | topic=" + topic +
+                            " | qos=" + message.getQos() +
+                            " | retained=" + message.isRetained() +
+                            " | bytes=" + message.getPayload().length +
+                            " | payload=" + payload);
             // 委托处理
             serialDataProcessor.process(topic, payload);
             System.out.println("✅ Message processed successfully");
