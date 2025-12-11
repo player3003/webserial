@@ -80,4 +80,15 @@ public class MqttService implements MqttCallback {
     public void deliveryComplete(IMqttDeliveryToken token) {
         // not used (we don't publish from this client)
     }
+
+    // 对外发布命令或消息
+    public void publish(String topic, String payload, int qos, boolean retained) throws MqttException {
+        if (client == null || !client.isConnected()) {
+            throw new MqttException(new Throwable("MQTT client not connected"));
+        }
+        MqttMessage msg = new MqttMessage(payload.getBytes());
+        msg.setQos(qos);
+        msg.setRetained(retained);
+        client.publish(topic, msg);
+    }
 }
