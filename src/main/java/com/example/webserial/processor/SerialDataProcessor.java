@@ -27,6 +27,15 @@ public class SerialDataProcessor {
             String deviceId = extractDeviceIdFromTopic(topic);
             long timestamp = System.currentTimeMillis();
             Map<String, Object> payload = parseRawPayload(raw);
+            String messageType = extractMessageTypeFromTopic(topic, raw, payload);
+
+            // try to extract correlation id if provided inside payload
+            String correlationId = null;
+            if (payload != null) {
+                Object cid = payload.get("correlationId");
+                if (cid == null) cid = payload.get("cid");
+                if (cid != null) correlationId = String.valueOf(cid);
+            }
 
             System.out.println("   Device ID: " + deviceId);
             System.out.println("   Timestamp: " + timestamp);
@@ -37,6 +46,8 @@ public class SerialDataProcessor {
             entity.setTimestamp(timestamp);
             entity.setRawData(raw);
             entity.setPayload(payload);
+            entity.setMessageType(messageType);
+            entity.setCorrelationId(correlationId);
 
             // 存库
             System.out.println("💾 Saving to MongoDB...");
@@ -97,5 +108,21 @@ public class SerialDataProcessor {
             }
         }
         return map;
+    }
+
+    // 根据 topic 或 payload 判断消息类型
+    private String extractMessageTypeFromTopic(String topic, String raw, Map<String, Object> payload) {
+        if (topic == null) return "unknown";
+        String lower = topic.toLowerCase();
+        if (lower.contains("/serial/status") || lower.contains("/status")) return "status";
+        if (lower.contains("/serial/cmd") || lower.contains("/cmd") || lower.contains("/command")) return "command";
+        if (lower.contains("/serial/raw") || lower.contains("/raw") || lower.contains("/telemetry")) return "telemetry";
+
+        // 如果 payload 含有明显的字段判断
+        if (payload != null) {
+            if (payload.containsKey("status") || payload.containsKey("state")) return "status";
+            if (payload.containsKey("command") || payload.containsKey("cmd")) return "command";
+        }
+        return "telemetry";
     }
 }
