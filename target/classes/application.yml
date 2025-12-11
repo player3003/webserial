@@ -10,4 +10,9 @@ app:
   mqtt:
     broker: tcp://localhost:1883
     clientId: web-serial-server
-    topic: device/+/serial/raw
+    # 使用更宽泛的主题订阅以接收 raw/status/cmd 等多类型消息
+    topic: device/+/serial/#
+    # 命令下发模板（可在控制器中使用）
+    commandTopicTemplate: device/{deviceId}/serial/cmd
+    # 发布默认 QoS
+    defaultPublishQos: 1
